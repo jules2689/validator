@@ -48,8 +48,61 @@ This class can accept a `validations` hash on initialize, and then validate conf
   
   Run `ruby docs`. We can also parse the validations to generate schema examples for docs.
 
-  ```shell
-  ~/src/github.com/jules2689/validator(master*) ➜ ruby docs
+  Example Input:
+  ```ruby
+    {
+    database: {
+      type: Hash,
+      required: true,
+      entry: {
+        bootstrap: {
+          type: String,
+          required: true,
+          example: 'bin/rails db:setup'
+        },
+        migrate: {
+          type: String,
+          required: true,
+          example: 'bin/rails db:migrate'
+        },
+        migration_folders: {
+          type: Array,
+          entry: [{ type: String }],
+          example: ['db/migrate', 'db/lhm']
+        },
+        host: {
+          type: String,
+          required: true,
+          example: 'localhost'
+        },
+        user: {
+          type: String,
+          required: true,
+          example: 'root'
+        },
+        password: {
+          type: String,
+          required: true,
+          example: 'password'
+         },
+        database: {
+          type: String,
+          required: true,
+          example: 'my_app_development'
+        },
+        vendor: {
+          type: String,
+          values: %w(mysql postgres sqlite),
+          default: 'mysql',
+          example: 'mysql'
+        }
+      }
+    }
+  }
+  ```
+  
+  Example Output:
+  ```yaml
   database:
     bootstrap: 'bin/rails db:setup' # (required)
     migrate: 'bin/rails db:migrate' # (required)
