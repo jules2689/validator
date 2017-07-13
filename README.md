@@ -1,4 +1,4 @@
-# dev-validator
+validator
 
 # validator.rb
 
