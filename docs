@@ -1,0 +1,32 @@
+require_relative 'db_test_data'
+require 'yaml'
+
+$docs = {}
+
+def build_suffix(val)
+  required = val[:required] ? '# (required)' : '# (optional)'
+  values = val[:values] ? "must be one of #{val[:values].join(', ')}" : nil
+  default = val[:default] ? "default is #{val[:default]}" : nil
+  [required, values, default].compact.join(', ')
+end
+
+def build(validation, keys: [])
+  keys.map!(&:to_s)
+
+  validation.each do |key, val|
+    case val[:type].to_s
+    when 'Hash'
+      keys.inject($docs, :fetch)[key.to_s] = {}
+      build(val[:entry], keys: keys + [key])
+    when 'Array'
+      suffix = build_suffix(val)
+      keys.inject($docs, :fetch)[key.to_s] = val[:example].map { |e| "#{e} #{suffix}"}
+    when 'String'
+      suffix = build_suffix(val)
+      keys.inject($docs, :fetch)[key.to_s] = [val[:example], suffix].compact.join(' ')
+    end
+  end
+end
+
+build(db_validation)
+puts $docs.to_yaml

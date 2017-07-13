@@ -1,0 +1,47 @@
+require_relative 'db_test_data'
+require_relative 'host_test_data'
+
+def test_validation(validation, config, errors: {})
+  v = Validator.new(validation)
+  v.validate!(config)
+
+  if errors.empty?
+    if v.valid?
+      puts "✅  Validation passed"
+    else
+      puts "❌ Validation failed. #{v.errors.inspect} was supposed to be empty"
+    end
+  else
+    if !v.valid?
+      puts "✅  Errors were detected."
+      if errors != v.errors
+        puts "❌ Errors were supposed to be #{errors.inspect} not #{v.errors.inspect}"
+      else
+        puts "✅  Errors matched."
+      end
+    else
+      puts "❌ Validation succeed. It was supposed to fail"
+    end
+  end
+  puts "\n\n"
+end
+
+puts "Validating DB Valid Config"
+test_validation(db_validation, db_valid_config)
+
+puts "Validating DB Invalid Config"
+test_validation(db_validation, db_invalid_config, errors: {
+  bootstrap: ["was required"],
+  migrate: ["was required"],
+  user: ["was required"],
+  password: ["was required"],
+  database: ["was required"]
+})
+
+puts "Validating Host Valid Config"
+test_validation(host_validation, host_valid_config)
+
+puts "Validating Host Invalid Config"
+test_validation(host_validation, host_invalid_config, errors: {
+  host: ["must match a regex for one of (ip, host), but not_a_host did not"]
+})
