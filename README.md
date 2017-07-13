@@ -6,7 +6,7 @@ This class can accept a `validations` hash on initialize, and then validate conf
 
 ### example
 ```ruby
-   host_validation = {
+ host_validation = {
     config: {
       type: Hash,
       required: true,
