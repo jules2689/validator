@@ -31,4 +31,5 @@ def build(validation, keys: [])
 end
 
 build(db_validation)
-puts $docs.to_yaml
+# Gsub the quote at the end of each line to before the "comment"
+puts $docs.to_yaml(line_width: 100).gsub(/'$/, '').gsub(/ #/, "' #")
