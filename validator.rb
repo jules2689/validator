@@ -1,5 +1,3 @@
-require 'byebug'
-
 class Validator
   attr_reader :errors
 
@@ -28,9 +26,9 @@ class Validator
     entry = validation[:entry]
     case entry
     when Array
-      validate_array(key, val, validation[:type], entry)
+      validate_array(key, val, validation[:type], entry) if val
     when Hash
-      validate_hash(val, entry)
+      validate_hash(val, entry) if val
     when nil
       # Nothing, we're done
     else
@@ -69,7 +67,11 @@ class Validator
   def check_type(key, val, validation)
     return false if !validation[:required] && val.nil? # Optional and not here, dont check
     return false unless validation[:type]
-    return false unless !(val.is_a?(validation[:type]) || val.nil?)
+    if validation[:type] == 'Boolean'
+      return false unless !(val.is_a?(TrueClass) || val.is_a?(FalseClass) || val.nil?)
+    else
+      return false unless !(val.is_a?(validation[:type]) || val.nil?)
+    end
 
     error! key, "supposed to be a #{validation[:type]} but was #{val.class}"
     true
