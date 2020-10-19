@@ -27,35 +27,34 @@ class Validator
     end
   end
 
-  def validate_array(key, val, type, entry)
-    raise 'Cannot provide an entry array if type is not Array' unless type == Array
-    if val.is_a?(Array)
-      val.each do |sub_val|
+  def validate_array(validation:, key:, schema:)
+    if schema.is_a?(Array)
+      schema.each do |sub_schema|
         validate_entry(
-          validation: entry.first,
+          validation: validation.first, # TODO: Why first?
           key: "#{key}.entry",
-          schema: sub_val
+          schema: sub_schema
         )
       end
     end
   end
 
   def validate_entry(validation:, key:, schema:)
-    check_required(key, schema, validation)
-    check_type(key, schema, validation)
-    check_enum(key, schema, validation)
-    check_match(key, schema, validation)
+    check_required(validation: validation, key: key, schema: schema)
+    check_type(validation: validation, key: key, schema: schema)
+    check_enum(validation: validation, key: key, schema: schema)
+    check_match(validation: validation, key: key, schema: schema)
 
-    entry = validation[:entry]
-    case entry
+    validationEntry = validation[:entry]
+    case validationEntry
     when Array
-      validate_array(key, schema, validation[:type], entry) if schema
+      validate_array(key: key, schema: schema, validation: validationEntry) if schema
     when Hash
-      validate_hash(schema: schema, validation: entry) if schema
+      validate_hash(schema: schema, validation: validationEntry) if schema
     when nil
       # Nothing, we're done
     else
-      raise "invalid entry #{entry}"
+      raise "invalid entry #{validationEntry}"
     end
   end
 
@@ -64,35 +63,35 @@ class Validator
   ##
 
   # Fails validation if required and the value is nil
-  def check_required(key, val, validation)
-    return false unless validation[:required] && val.nil?
+  def check_required(validation:, key:, schema:)
+    return false unless validation[:required] && schema.nil?
 
     error! key, "was required"
     true
   end
 
   # Fails validation if the value is not of the 'type' class
-  def check_type(key, val, validation)
-    return false if !validation[:required] && val.nil? # Optional and not here, dont check
+  def check_type(validation:, key:, schema:)
+    return false if !validation[:required] && schema.nil? # Optional and not here, dont check
     return false unless validation[:type]
     if validation[:type] == 'Boolean'
-      return false unless !(val.is_a?(TrueClass) || val.is_a?(FalseClass) || val.nil?)
+      return false unless !(schema.is_a?(TrueClass) || schema.is_a?(FalseClass) || schema.nil?)
     else
-      return false unless !(val.is_a?(validation[:type]) || val.nil?)
+      return false unless !(schema.is_a?(validation[:type]) || schema.nil?)
     end
 
-    error! key, "supposed to be a #{validation[:type]} but was #{val.class}"
+    error! key, "supposed to be a #{validation[:type]} but was #{schema.class}"
     true
   end
 
   # Fails validation if the value is not in values
-  def check_enum(key, val, validation)
-    return false if !validation[:required] && val.nil? # Optional and not here, dont check
+  def check_enum(validation:, key:, schema:)
+    return false if !validation[:required] && schema.nil? # Optional and not here, dont check
     return false unless validation[:values]
-    return false if validation[:values].include?(val)
+    return false if validation[:values].include?(schema)
 
-    val = 'nothing' if val.nil?
-    error! key, "must be one of #{validation[:values].join(', ')}, but was #{val}"
+    schema = 'nothing' if schema.nil?
+    error! key, "must be one of #{validation[:values].join(', ')}, but was #{schema}"
     true
   end
 
@@ -102,14 +101,14 @@ class Validator
   }
 
   # Fails validation if the value does not match 'matches'
-  def check_match(key, val, validation)
-    return false if !validation[:required] && val.nil? # Optional and not here, dont check
+  def check_match(validation:, key:, schema:)
+    return false if !validation[:required] && schema.nil? # Optional and not here, dont check
     return false unless validation[:matches]
 
     matchers = [validation[:matches]].flatten
-    return false if matchers.any? { |r| val =~ MATCH_REGEX[r] }
+    return false if matchers.any? { |r| schema =~ MATCH_REGEX[r] }
 
-    error! key, "must match a regex for one of (#{matchers.join(', ')}), but #{val} did not"
+    error! key, "must match a regex for one of (#{matchers.join(', ')}), but #{schema} did not"
     true
   end
 
