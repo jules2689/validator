@@ -40,6 +40,7 @@ class Validator
   end
 
   def validate_entry(validation:, key:, schema:)
+    check_length(validation: validation, key: key, schema: schema)
     check_required(validation: validation, key: key, schema: schema)
     check_type(validation: validation, key: key, schema: schema)
     check_enum(validation: validation, key: key, schema: schema)
@@ -61,6 +62,37 @@ class Validator
   ##
   ## Validators
   ##
+
+  # Fails validation if length is more than specified
+  def check_length(validation:, key:, schema:)
+    return false unless validation[:length] && schema
+
+    case schema
+    when Hash, Array
+      return false unless schema.length > validation[:length]
+      error!(
+        key,
+        "cannot have more than #{validation[:length]} "\
+        "#{pluralize('element', 'elements', validation[:length])}, "\
+        "but has #{schema.length} #{pluralize('element', 'elements', schema.length)}"
+      )
+    when String
+      return false unless schema.length > validation[:length]
+      error!(
+        key,
+        "cannot be longer than #{validation[:length]} "\
+        "#{pluralize('character', 'characters', validation[:length])}, but was #{schema.length} in length"
+      )
+    else
+      error!(
+        key,
+        "cannot validate length on an object of type #{schema.class}. "\
+        "Tried to validate length of #{validation[:length]}"
+      )
+    end
+
+    true
+  end
 
   # Fails validation if required and the value is nil
   def check_required(validation:, key:, schema:)
@@ -115,5 +147,9 @@ class Validator
   def error!(key, msg)
     @errors[key] ||= []
     @errors[key] << msg
+  end
+
+  def pluralize(singular, plural, count)
+    count == 1 ? singular : plural
   end
 end

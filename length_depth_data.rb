@@ -22,7 +22,12 @@ def length_validation
           length: 2,
         }
       }
+    },
+    string: {
+      type: String,
+      length: 5,
     }
+
   }
 end
 
@@ -71,6 +76,19 @@ def length_nested_hash_invalid_config
   configArray: [1, 2]
   configHashNested:
     thing: [1, 2, 3]
+  EOF
+  YAML.load(config)
+end
+
+def length_string_invalid_config
+  config=<<-EOF
+  config:
+    host: 192.168.1.1
+    host2: example.com
+  configArray: [1, 2]
+  configHashNested:
+    thing: [1, 2]
+  string: "1234567"
   EOF
   YAML.load(config)
 end

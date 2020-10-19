@@ -54,15 +54,20 @@ test_validation(length_validation, length_valid_config)
 
 puts "Validating length and depth - Hash Invalid"
 test_validation(length_validation, length_hash_invalid_config, errors: {
-  config: ["cannot have more than 2 elements, but has 3"]
+  "config" => ["cannot have more than 2 elements, but has 3 elements"]
 })
 
 puts "Validating length and depth - Array Invalid"
 test_validation(length_validation, length_array_invalid_config, errors: {
-  configArray: ["cannot have more than 2 elements, but has 3"]
+  "configArray" => ["cannot have more than 2 elements, but has 3 elements"]
 })
 
 puts "Validating length and depth - Nested Hash Invalid"
 test_validation(length_validation, length_nested_hash_invalid_config, errors: {
-  thing: ["cannot have more than 2 elements, but has 3"]
+  "configHashNested.thing" => ["cannot have more than 2 elements, but has 3 elements"]
+})
+
+puts "Validating length and depth - String Invalid"
+test_validation(length_validation, length_string_invalid_config, errors: {
+  "string" => ["cannot be longer than 5 characters, but was 7 in length"]
 })
