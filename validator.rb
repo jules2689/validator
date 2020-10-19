@@ -7,7 +7,7 @@ class Validator
   end
 
   def validate!(schema)
-    validate_hash(schema: schema, validation: @validation_schema)
+    validate_hash(schema: schema, validation: @validation_schema, key: nil)
     @errors.empty?
   end
 
@@ -17,11 +17,11 @@ class Validator
 
   private
 
-  def validate_hash(schema:, validation:)
+  def validate_hash(validation:, key:, schema:)
     validation.each do |sub_key, sub_validation|
       validate_entry(
         validation: sub_validation,
-        key: sub_key,
+        key: [key, sub_key].compact.join("."),
         schema: schema[sub_key.to_s]
       )
     end
@@ -50,7 +50,7 @@ class Validator
     when Array
       validate_array(key: key, schema: schema, validation: validationEntry) if schema
     when Hash
-      validate_hash(schema: schema, validation: validationEntry) if schema
+      validate_hash(key: key, schema: schema, validation: validationEntry) if schema
     when nil
       # Nothing, we're done
     else
