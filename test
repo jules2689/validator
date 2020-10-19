@@ -33,11 +33,11 @@ test_validation(db_validation, db_valid_config)
 
 puts "Validating DB Invalid Config"
 test_validation(db_validation, db_invalid_config, errors: {
-  bootstrap: ["was required"],
-  migrate: ["was required"],
-  user: ["was required"],
-  password: ["was required"],
-  database: ["was required"]
+  "database.bootstrap" => ["was required"],
+  "database.migrate" => ["was required"],
+  "database.user" => ["was required"],
+  "database.password" => ["was required"],
+  "database.database" => ["was required"]
 })
 
 puts "Validating Host Valid Config"
@@ -45,5 +45,5 @@ test_validation(host_validation, host_valid_config)
 
 puts "Validating Host Invalid Config"
 test_validation(host_validation, host_invalid_config, errors: {
-  host: ["must match a regex for one of (ip, host), but not_a_host did not"]
+  "config.host" => ["must match a regex for one of (ip, host), but not_a_host did not"]
 })
