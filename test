@@ -2,6 +2,7 @@
 
 require_relative 'db_test_data'
 require_relative 'host_test_data'
+require_relative 'length_depth_data'
 
 def test_validation(validation, config, errors: {})
   v = Validator.new(validation)
@@ -46,4 +47,22 @@ test_validation(host_validation, host_valid_config)
 puts "Validating Host Invalid Config"
 test_validation(host_validation, host_invalid_config, errors: {
   "config.host" => ["must match a regex for one of (ip, host), but not_a_host did not"]
+})
+
+puts "Validating length and depth valid"
+test_validation(length_validation, length_valid_config)
+
+puts "Validating length and depth - Hash Invalid"
+test_validation(length_validation, length_hash_invalid_config, errors: {
+  config: ["cannot have more than 2 elements, but has 3"]
+})
+
+puts "Validating length and depth - Array Invalid"
+test_validation(length_validation, length_array_invalid_config, errors: {
+  configArray: ["cannot have more than 2 elements, but has 3"]
+})
+
+puts "Validating length and depth - Nested Hash Invalid"
+test_validation(length_validation, length_nested_hash_invalid_config, errors: {
+  thing: ["cannot have more than 2 elements, but has 3"]
 })
