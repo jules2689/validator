@@ -1,13 +1,13 @@
 class Validator
   attr_reader :errors
 
-  def initialize(validation)
-    @validation = validation
+  def initialize(validation_schema)
+    @validation_schema = validation_schema
     @errors = {}
   end
 
-  def validate!(args)
-    validate_hash(args, @validation)
+  def validate!(schema)
+    validate_hash(schema: schema, validation: @validation_schema)
     @errors.empty?
   end
 
@@ -17,22 +17,9 @@ class Validator
 
   private
 
-  def validate_entry(validation, key, val)
-    check_required(key, val, validation)
-    check_type(key, val, validation)
-    check_enum(key, val, validation)
-    check_match(key, val, validation)
-
-    entry = validation[:entry]
-    case entry
-    when Array
-      validate_array(key, val, validation[:type], entry) if val
-    when Hash
-      validate_hash(val, entry) if val
-    when nil
-      # Nothing, we're done
-    else
-      raise "invalid entry #{entry}"
+  def validate_hash(schema:, validation:)
+    validation.each do |sub_key, sub_validation|
+      validate_entry(sub_validation, sub_key, schema[sub_key.to_s])
     end
   end
 
@@ -45,9 +32,22 @@ class Validator
     end
   end
 
-  def validate_hash(val, entry)
-    entry.each do |sub_key, sub_entry|
-      validate_entry(sub_entry, sub_key, val[sub_key.to_s])
+  def validate_entry(validation, key, val)
+    check_required(key, val, validation)
+    check_type(key, val, validation)
+    check_enum(key, val, validation)
+    check_match(key, val, validation)
+
+    entry = validation[:entry]
+    case entry
+    when Array
+      validate_array(key, val, validation[:type], entry) if val
+    when Hash
+      validate_hash(schema: val, validation: entry) if val
+    when nil
+      # Nothing, we're done
+    else
+      raise "invalid entry #{entry}"
     end
   end
 
