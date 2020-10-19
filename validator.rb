@@ -7,7 +7,7 @@ class Validator
   end
 
   def validate!(schema)
-    validate_hash(schema: schema, validation: @validation_schema, key: nil)
+    validate_hash(validation: @validation_schema, key: nil, schema: schema)
     @errors.empty?
   end
 
@@ -48,9 +48,9 @@ class Validator
     validationEntry = validation[:entry]
     case validationEntry
     when Array
-      validate_array(key: key, schema: schema, validation: validationEntry) if schema
+      validate_array(validation: validationEntry, key: key, schema: schema) if schema
     when Hash
-      validate_hash(key: key, schema: schema, validation: validationEntry) if schema
+      validate_hash(validation: validationEntry, key: key, schema: schema) if schema
     when nil
       # Nothing, we're done
     else
