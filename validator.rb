@@ -41,6 +41,7 @@ class Validator
 
   def validate_entry(validation:, key:, schema:)
     check_length(validation: validation, key: key, schema: schema)
+    check_depth(validation: validation, key: key, schema: schema)
     check_required(validation: validation, key: key, schema: schema)
     check_type(validation: validation, key: key, schema: schema)
     check_enum(validation: validation, key: key, schema: schema)
@@ -63,7 +64,7 @@ class Validator
   ## Validators
   ##
 
-  # Fails validation if length is more than specified
+  # Fails validation if length is more than specified, or we can't respond to length
   def check_length(validation:, key:, schema:)
     return false unless validation[:length] && schema
 
@@ -88,6 +89,30 @@ class Validator
         key,
         "cannot validate length on an object of type #{schema.class}. "\
         "Tried to validate length of #{validation[:length]}"
+      )
+    end
+
+    true
+  end
+
+  # Fails validation if depth of nestable types is more than specified
+  def check_depth(validation:, key:, schema:)
+    return false unless validation[:depth] && schema
+
+    case schema
+    when Hash, Array
+      depth = max_depth(schema)
+      return false unless depth > validation[:depth]
+      error!(
+        key,
+        "cannot have a depth of more than #{validation[:depth]} "\
+        "but #{key} has a nested depth of #{depth}"
+      )
+    else
+      error!(
+        key,
+        "cannot validate depth on an object of type #{schema.class}. "\
+        "Tried to validate depth of #{validation[:length]}"
       )
     end
 
@@ -144,9 +169,30 @@ class Validator
     true
   end
 
+  ##
+  ## Helpers
+  ##
+
   def error!(key, msg)
     @errors[key] ||= []
     @errors[key] << msg
+  end
+
+  def max_depth(node)
+    # Nil node has 0 depth.
+    return 0 if node.nil?
+
+    depths = case node
+    when Array
+      potential_elements = node.select { |el| el.is_a?(Hash) || el.is_a?(Array) }
+      potential_elements.map { |el| max_depth(el) }
+    when Hash
+      potential_elements = node.values.select { |el| el.is_a?(Hash) || el.is_a?(Array) }
+      potential_elements.map { |el| max_depth(el) }
+    end
+
+    return 1 if depths.empty? # If we are empty, we are at a terminal, return 1
+    depths.max + 1 # Otherwise, return the deepest branch, increased by 1 for this level
   end
 
   def pluralize(singular, plural, count)

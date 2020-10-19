@@ -2,7 +2,8 @@
 
 require_relative 'db_test_data'
 require_relative 'host_test_data'
-require_relative 'length_depth_data'
+require_relative 'length_data'
+require_relative 'depth_data'
 
 def test_validation(validation, config, errors: {})
   v = Validator.new(validation)
@@ -70,4 +71,17 @@ test_validation(length_validation, length_nested_hash_invalid_config, errors: {
 puts "Validating length and depth - String Invalid"
 test_validation(length_validation, length_string_invalid_config, errors: {
   "string" => ["cannot be longer than 5 characters, but was 7 in length"]
+})
+
+puts "Validating depth and depth valid"
+test_validation(depth_validation, depth_valid_config)
+
+puts "Validating depth and depth - Hash Invalid"
+test_validation(depth_validation, depth_hash_invalid_config, errors: {
+  "config" => ["cannot have a depth of more than 2 but config has a nested depth of 3"]
+})
+
+puts "Validating depth and depth - Array Invalid"
+test_validation(depth_validation, depth_array_invalid_config, errors: {
+  "configArray" => ["cannot have a depth of more than 1 but configArray has a nested depth of 2"]
 })
