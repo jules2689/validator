@@ -19,7 +19,11 @@ class Validator
 
   def validate_hash(schema:, validation:)
     validation.each do |sub_key, sub_validation|
-      validate_entry(sub_validation, sub_key, schema[sub_key.to_s])
+      validate_entry(
+        validation: sub_validation,
+        key: sub_key,
+        schema: schema[sub_key.to_s]
+      )
     end
   end
 
@@ -27,23 +31,27 @@ class Validator
     raise 'Cannot provide an entry array if type is not Array' unless type == Array
     if val.is_a?(Array)
       val.each do |sub_val|
-        validate_entry(entry.first, "#{key}.entry", sub_val)
+        validate_entry(
+          validation: entry.first,
+          key: "#{key}.entry",
+          schema: sub_val
+        )
       end
     end
   end
 
-  def validate_entry(validation, key, val)
-    check_required(key, val, validation)
-    check_type(key, val, validation)
-    check_enum(key, val, validation)
-    check_match(key, val, validation)
+  def validate_entry(validation:, key:, schema:)
+    check_required(key, schema, validation)
+    check_type(key, schema, validation)
+    check_enum(key, schema, validation)
+    check_match(key, schema, validation)
 
     entry = validation[:entry]
     case entry
     when Array
-      validate_array(key, val, validation[:type], entry) if val
+      validate_array(key, schema, validation[:type], entry) if schema
     when Hash
-      validate_hash(schema: val, validation: entry) if val
+      validate_hash(schema: schema, validation: entry) if schema
     when nil
       # Nothing, we're done
     else
